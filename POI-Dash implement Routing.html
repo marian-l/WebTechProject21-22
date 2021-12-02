@@ -493,6 +493,7 @@
 
         var coords = [];
 
+
         function makeMap(myData) {
             if (markerLayer == null) {
                 markerLayer = L.layerGroup();
@@ -543,6 +544,7 @@
                     .addTo(markerLayer)
 
 
+
             });
             console.log("Marker Layer: " + markerLayer);
             console.log(map);
@@ -560,19 +562,24 @@
             console.log(myData);
             makeMap(myData);
         }
+
+
+        PHCoords = [];
+
+        function ajaxLoadPHSuccess(myData) {
+            myData.forEach(element => {
+                PHCoords.push(element);
+            });
+        }
+
         var routes = {};
 
-
         function createRoute(id, coords) {
-            var way_points = [];
-            coords.forEach(function(coords, index) {
-                way_points.push(L.latLng(coord[0], coord[1]));
-            });
             route = L.Routing.control({
                 name: id,
                 serviceUrl: 'http://router.project-osrm.org/route/v1',
                 //router: L.Routing.graphHopper('apiKey');
-                waypoints: way_points,
+                waypoints: coords, //way_points,
                 addWaypoints: false,
                 draggableWaypoints: false,
                 show: false,
@@ -598,6 +605,18 @@
                     routes[key].remove();
                 }
             }
+        }
+
+        function parkhausSuche() {
+            $.ajax({
+                url: ('POI-Dash-Parkhaus.php'),
+                data: {},
+                type: 'GET',
+                timeout: 1000,
+                dataType: 'json',
+                error: ajaxLoadError,
+                success: ajaxLoadPHSuccess
+            })
         }
 
         function ajaxLoadData() {
@@ -638,9 +657,7 @@
                     alert('Error - ' + errorMessage);
                 },
                 success: ajaxLoadDataSuccess
-                    //success: function(ajaxresult) {
-                    //  $("#ajaxrequest").html(ajaxresult);
-                    // }
+
             })
         }
         // Hier ist die Funktion für die Checkboxen
@@ -837,14 +854,22 @@
         <input type="button" value="Absenden" onclick="ajaxLoadSpecifiedData()">
     </fieldset>
 
+    <fieldset>
+        <legend> Route Control </legend>
+        <div><input type="button" value="Activate" onclick="createRoute('neue ID', coords)"></div>
+        <div><input type="button" value="Deactivate" onclick="removeRoute('neue ID')"></div>
+        <div><input type="button" value="remove All Routes" onclick="removeAllRoutes()"></div>
+        <div><input type="button" value="Parkhaus-Suche" onclick="parkhausSuche()"></div>
+    </fieldset>
 
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <script type=" module " src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js "></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js "></script>
+    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js "></script>
+    <link rel="stylesheet " href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css " />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js "></script>
+    <link rel="stylesheet " href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css " />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js "></script>
 
 
 </body>
