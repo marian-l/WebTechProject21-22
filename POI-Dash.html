@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="https://cdn.jsdelivr.net/jquery/2.2.3/jquery.min.js"></script>
+
+    <style>
+        html,
+        body,
+        #map {
+            height: 90%;
+            width: 90%;
+        }
+        
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        /* Marker setup */
+        
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+        
+        th,
+        td {
+            padding: 10px 20px;
+            border: 1px solid #000;
+        }
+        
+        .awesome-marker {
+            background: url('images/markers-soft.png') no-repeat 0 0;
+            width: 35px;
+            height: 46px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: block;
+            text-align: center;
+        }
+        
+        .awesome-marker-shadow {
+            background: url('images/markers-shadow.png') no-repeat 0 0;
+            width: 36px;
+            height: 16px;
+        }
+        /* Retina displays */
+        
+        @media (min--moz-device-pixel-ratio: 1.5),
+        (-o-min-device-pixel-ratio: 3/2),
+        (-webkit-min-device-pixel-ratio: 1.5),
+        (min-device-pixel-ratio: 1.5),
+        (min-resolution: 1.5dppx) {
+            .awesome-marker {
+                background-image: url('images/markers-soft@2x.png');
+                background-size: 720px 46px;
+            }
+            .awesome-marker-shadow {
+                background-image: url('images/markers-shadow@2x.png');
+                background-size: 35px 16px;
+            }
+        }
+        
+        .awesome-marker i {
+            color: #333;
+            margin-top: 10px;
+            display: inline-block;
+            font-size: 14px;
+        }
+        
+        .awesome-marker .icon-white {
+            color: #fff;
+        }
+        /* Colors */
+        
+        .awesome-marker-icon-red {
+            background-position: 0 0;
+        }
+        
+        .awesome-marker-icon-darkred {
+            background-position: -180px 0;
+        }
+        
+        .awesome-marker-icon-lightred {
+            background-position: -360px 0;
+        }
+        
+        .awesome-marker-icon-orange {
+            background-position: -36px 0;
+        }
+        
+        .awesome-marker-icon-beige {
+            background-position: -396px 0;
+        }
+        
+        .awesome-marker-icon-green {
+            background-position: -72px 0;
+        }
+        
+        .awesome-marker-icon-darkgreen {
+            background-position: -252px 0;
+        }
+        
+        .awesome-marker-icon-lightgreen {
+            background-position: -432px 0;
+        }
+        
+        .awesome-marker-icon-blue {
+            background-position: -108px 0;
+        }
+        
+        .awesome-marker-icon-darkblue {
+            background-position: -216px 0;
+        }
+        
+        .awesome-marker-icon-lightblue {
+            background-position: -468px 0;
+        }
+        
+        .awesome-marker-icon-purple {
+            background-position: -144px 0;
+        }
+        
+        .awesome-marker-icon-darkpurple {
+            background-position: -288px 0;
+        }
+        
+        .awesome-marker-icon-pink {
+            background-position: -504px 0;
+        }
+        
+        .awesome-marker-icon-cadetblue {
+            background-position: -324px 0;
+        }
+        
+        .awesome-marker-icon-white {
+            background-position: -574px 0;
+        }
+        
+        .awesome-marker-icon-gray {
+            background-position: -648px 0;
+        }
+        
+        .awesome-marker-icon-lightgray {
+            background-position: -612px 0;
+        }
+        
+        .awesome-marker-icon-black {
+            background-position: -682px 0;
+        }
+    </style>
+
+    <title>Parken Dashboard</title>
+
+
+    <script type="text/javascript">
+    </script>
+</head>
+
+<body id="body">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css">
+    <script src="https://cdn.jsdelivr.net/jquery/2.2.3/jquery.min.js">
+    </script>
+    <!--- Variables -->
+    <script>
+        var markerLayer = null;
+        var map;
+        var setMap = false;
+        var markerType;
+
+        var freizeit = 1;
+        var gesundheitswesen = 1;
+        var bildung = 1;
+        var einzelhandelUndDienstleistungen = 1;
+        var entsorgung = 1;
+        var finanzen = 1;
+        var transport = 1;
+        var party = 1;
+        var gastronomie = 1;
+        var religion = 1;
+        var öffentlicheHand = 1;
+        var specifiedData = false;
+
+        class Poi {
+            constructor() {
+                this.name = "Default";
+                this.long = 0.0;
+                this.lat = 0.0;
+                this.kategorie = "Default";
+            }
+        }
+        var myNewPoi = new Poi();
+
+        //////////////////////////////////////////////////
+
+        var myData = [];
+    </script>
+    <!--- Functions -->
+    <script>
+        function ajaxSendSuccess(data) {
+            console.log("Sending Successful");
+        }
+
+        function ajaxSendError(data) {
+            console.log("Fehler beim Speichern");
+        }
+
+        function ajaxSend() {
+            $.ajax({
+                url: ('POI-DashSendData.php'),
+                data: {
+                    'name': myNewPoi.name,
+                    'kategorie': myNewPoi.kategorie,
+                    'long': myNewPoi.long,
+                    'lat': myNewPoi.lat
+                },
+                type: 'GET',
+                timeout: 1000,
+                dataType: 'json',
+                error: ajaxSendError,
+                success: ajaxSendSuccess
+            })
+        }
+
+        function takePosition(position) {
+            myNewPoi.lat = position.coords.latitude;
+            myNewPoi.long = position.coords.longitude;
+            ajaxSend();
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(takePosition);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function senden() {
+            myNewPoi.name = encodeURI(document.getElementById('name').value);
+            myNewPoi.kategorie = document.getElementById('kategorie').value;
+            var tmplong = document.getElementById('long').value;
+            var tmplat = document.getElementById('lat').value;
+            if ((tmplong == "") || (tmplat == "")) {
+                getLocation();
+            } else {
+                myNewPoi.long = tmplong;
+                myNewPoi.lat = tmplat;
+                ajaxSend();
+            }
+        }
+
+        //////////////////////////////////////////////////
+        // Awesome Markers Functions // 
+        (function(window, document, undefined) {
+            "use strict";
+            /*
+             * Leaflet.AwesomeMarkers assumes that you have already included the Leaflet library.
+             */
+
+            L.AwesomeMarkers = {};
+
+            L.AwesomeMarkers.version = '2.0.1';
+
+            L.AwesomeMarkers.Icon = L.Icon.extend({
+                options: {
+                    iconSize: [35, 45],
+                    iconAnchor: [17, 42],
+                    popupAnchor: [1, -32],
+                    shadowAnchor: [10, 12],
+                    shadowSize: [36, 16],
+                    className: 'awesome-marker',
+                    prefix: 'ion',
+                    spinClass: 'fa-spin',
+                    extraClasses: '',
+                    icon: 'home',
+                    markerColor: 'blue',
+                    iconColor: 'white'
+                },
+
+                initialize: function(options) {
+                    options = L.Util.setOptions(this, options);
+                },
+
+                createIcon: function() {
+                    var div = document.createElement('div'),
+                        options = this.options;
+
+                    if (options.icon) {
+                        div.innerHTML = this._createInner();
+                    }
+
+                    if (options.bgPos) {
+                        div.style.backgroundPosition =
+                            (-options.bgPos.x) + 'px ' + (-options.bgPos.y) + 'px';
+                    }
+
+                    this._setIconStyles(div, 'icon-' + options.markerColor);
+                    return div;
+                },
+
+                _createInner: function() {
+                    var iconClass, iconSpinClass = "",
+                        iconColorClass = "",
+                        iconColorStyle = "",
+                        options = this.options;
+
+                    if (options.icon.slice(0, options.prefix.length + 1) === options.prefix + "-") {
+                        iconClass = options.icon;
+                    } else {
+                        iconClass = options.prefix + "-" + options.icon;
+                    }
+
+                    if (options.spin && typeof options.spinClass === "string") {
+                        iconSpinClass = options.spinClass;
+                    }
+
+                    if (options.iconColor) {
+                        if (options.iconColor === 'white' || options.iconColor === 'black') {
+                            iconColorClass = "icon-" + options.iconColor;
+                        } else {
+                            iconColorStyle = "style='color: " + options.iconColor + "' ";
+                        }
+                    }
+
+                    return "<i " + iconColorStyle + "class='" + options.extraClasses + " " + options.prefix + " " + iconClass + " " + iconSpinClass + " " + iconColorClass + "'></i>";
+                },
+
+                _setIconStyles: function(img, name) {
+                    var options = this.options,
+                        size = L.point(options[name === 'shadow' ? 'shadowSize' : 'iconSize']),
+                        anchor;
+
+                    if (name === 'shadow') {
+                        anchor = L.point(options.shadowAnchor || options.iconAnchor);
+                    } else {
+                        anchor = L.point(options.iconAnchor);
+                    }
+
+                    if (!anchor && size) {
+                        anchor = size.divideBy(2, true);
+                    }
+
+                    img.className = 'awesome-marker-' + name + ' ' + options.className;
+
+                    if (anchor) {
+                        img.style.marginLeft = (-anchor.x) + 'px';
+                        img.style.marginTop = (-anchor.y) + 'px';
+                    }
+
+                    if (size) {
+                        img.style.width = size.x + 'px';
+                        img.style.height = size.y + 'px';
+                    }
+                },
+
+                createShadow: function() {
+                    var div = document.createElement('div');
+
+                    this._setIconStyles(div, 'shadow');
+                    return div;
+                }
+            });
+
+            L.AwesomeMarkers.icon = function(options) {
+                return new L.AwesomeMarkers.Icon(options);
+            };
+
+        }(this, document));
+
+        var Freizeit = L.AwesomeMarkers.icon({
+            //icon: '<ion-icon name="tv-outline"></ion-icon>',
+            //iconUrl: 'tv-outline.svg',
+            // icon: 'tv-outline.svg',
+            icon: 'coffee',
+            markerColor: 'darkgreen'
+        });
+        var Gesundheitswesen = L.AwesomeMarkers.icon({
+            //  icon: '<ion-icon name="medkit-outline"></ion-icon>',
+            markerColor: 'darkred'
+        });
+        var Bildung = L.AwesomeMarkers.icon({
+            //  icon: '<ion-icon name="book-outline"></ion-icon>',
+            markerColor: 'orange',
+            icon: 'bookmark'
+        });
+        var DatenSatzUnvollständig = L.AwesomeMarkers.icon({
+            //  icon: '<ion-icon name="book-outline"></ion-icon>',
+            markerColor: 'red'
+        });
+        var Einzelhandel = L.AwesomeMarkers.icon({
+            //  icon: '<ion-icon name="shirt-outline"></ion-icon>',
+            icon: 'home',
+            markerColor: 'cadetblue'
+        });
+        var Entsorgung = L.AwesomeMarkers.icon({
+            // icon: '<ion-icon name="trash-outline"></ion-icon>',
+            markerColor: 'blue'
+        });
+        var Finanzen = L.AwesomeMarkers.icon({
+            //    icon: '<ion-icon name="cash-outline"></ion-icon>',
+            markerColor: 'cadetblue'
+        });
+        var Transport = L.AwesomeMarkers.icon({
+            //  icon: '<ion-icon name="subway-outline"></ion-icon>',
+            markerColor: 'blue'
+        });
+        var Party = L.AwesomeMarkers.icon({
+            //  icon: '<ion-icon name="beer-outline"></ion-icon>',
+            markerColor: 'darkgreen',
+            // prefix: 'fa',
+            // icon: 'fa-glass'
+        });
+        var Gastronomie = L.AwesomeMarkers.icon({
+            //  icon: '<ion-icon name="restaurant-outline"></ion-icon>',
+            markerColor: 'darkpurple',
+            // prefix: 'fa',
+            // icon: '<i class="fas fa-utensils"></i>'
+        });
+        var Religion = L.AwesomeMarkers.icon({
+            //   icon: '<ion-icon name="add-outline"></ion-icon>',
+            markerColor: 'purple'
+        });
+        var ÖffentlicheHand = L.AwesomeMarkers.icon({
+            //   icon: '<ion-icon name="business-outline"></ion-icon>',
+            markerColor: 'blue'
+        });
+
+        function initMap() {
+            map = L.map('map', {
+                center: [49.98, 8.2],
+                zoom: 14
+            });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+
+            console.log(map);
+        }
+
+        function makeMap(myData) {
+            if (markerLayer == null) {
+                markerLayer = L.layerGroup();
+            } else {
+                markerLayer.clearLayers();
+            }
+            myData.forEach(element => {
+                if (element.kategorie == "Bildung") markerType = Bildung;
+                if (element.kategorie == "Gastronomie") markerType = Gastronomie;
+                if (element.kategorie == "Freizeit") markerType = Freizeit;
+                if (element.kategorie == "Gesundheitswesen") markerType = Gesundheitswesen;
+                if (element.kategorie == "Finanzen") markerType = Finanzen;
+                if (element.kategorie == "Öffentliche Hand") markerType = ÖffentlicheHand;
+                if (element.kategorie == "Einzelhandel und Dienstleistungen") markerType = Einzelhandel;
+                if (element.kategorie == "Religion") markerType = Religion;
+                if (element.kategorie == "Party") markerType = Party;
+                if (element.kategorie == "Datensatz unvollständig") markerType = DatenSatzUnvollständig;
+                if (element.kategorie == "Transport") markerType = Transport;
+                if (element.kategorie == "Entsorgung") markerType = Entsorgung;
+                //              console.log(element);
+                marker = new L.marker([element.lat, element.long], {
+                        clickable: true,
+                        icon: markerType,
+                    }).bindPopup('<br> ID: ' + element.id +
+                        '<br> Name: ' + element.POI_Name +
+                        '<br> Longitude: ' + element.long +
+                        '<br> Latitude: ' + element.lat +
+                        '<br> Kategorie: ' + element.kategorie)
+                    .addTo(markerLayer);
+            });
+            console.log("Marker Layer: " + markerLayer);
+            console.log(map);
+            map.addLayer(markerLayer);
+        }
+
+        function ajaxLoadError() {
+            console.log("loading error");
+        }
+
+        function ajaxLoadDataSuccess(myData) {
+            var output = "<p>";
+            console.log("ajaxLoadDataSuccess");
+            console.log(myData);
+
+            makeMap(myData);
+        }
+
+        function ajaxLoadData() {
+            $.ajax({
+                url: ('POI-Dash-GetData.php'),
+                data: {},
+                type: 'GET',
+                timeout: 1000,
+                dataType: 'json',
+                error: ajaxLoadError,
+                success: ajaxLoadDataSuccess
+            })
+        }
+
+        function ajaxLoadSpecifiedData() {
+            specifiedData = true;
+
+            $.ajax({
+                url: ('POI-Dash-GetSpecifiedData.php'),
+                data: {
+                    'Freizeit': freizeit,
+                    'Gesundheitswesen': gesundheitswesen,
+                    'Bildung': bildung,
+                    'EinzelhandelUndDienstleistungen': einzelhandelUndDienstleistungen,
+                    'Entsorgung': entsorgung,
+                    'Finanzen': finanzen,
+                    'Transport': transport,
+                    'Party': party,
+                    'Gastronomie': gastronomie,
+                    'Religion': religion,
+                    'ÖffentlicheHand': öffentlicheHand
+                },
+                type: 'GET',
+                timeout: 1000,
+                //dataType: 'json',
+                error: function(xhr, status, error) {
+                    var errorMessage = xhr.status + ': ' + xhr.statusText
+                    alert('Error - ' + errorMessage);
+                },
+                success: ajaxLoadDataSuccess
+                    //success: function(ajaxresult) {
+                    //  $("#ajaxrequest").html(ajaxresult);
+                    // }
+            })
+        }
+
+        // Hier ist die Funktion für die Checkboxen
+        function change_interest(number) {
+            switch (number) {
+                case (0):
+                    if (transport != 1) {
+                        transport = 1;
+                    } else if (transport != 0) {
+                        transport = 0;
+                    }
+                    break;
+                case (1):
+                    if (freizeit != 1) {
+                        freizeit = 1;
+                    } else if (freizeit != 0) {
+                        freizeit = 0;
+                    }
+                    break;
+                case (2):
+                    if (gesundheitswesen != 1) {
+                        gesundheitswesen = 1;
+                    } else if (gesundheitswesen != 0) {
+                        gesundheitswesen = 0;
+                    }
+                    break;
+                case (3):
+                    if (bildung != 1) {
+                        bildung = 1;
+                    } else if (bildung != 0) {
+                        bildung = 0;
+                    }
+                    break;
+                case (4):
+                    if (einzelhandelUndDienstleistungen != 1) {
+                        einzelhandelUndDienstleistungen = 1;
+                    } else if (einzelhandelUndDienstleistungen != 0) {
+                        einzelhandelUndDienstleistungen = 0;
+                    }
+                    break;
+                case (5):
+                    if (entsorgung != 1) {
+                        entsorgung = 1;
+                    } else if (entsorgung != 0) {
+                        entsorgung = 0;
+                    }
+                    break;
+                case (6):
+                    if (finanzen != 1) {
+                        finanzen = 1;
+                    } else if (finanzen != 0) {
+                        finanzen = 0;
+                    }
+                    break;
+                case (7):
+                    if (party != 1) {
+                        party = 1;
+                    } else if (party != 0) {
+                        party = 0;
+                    }
+                    break;
+                case (8):
+                    if (gastronomie != 1) {
+                        gastronomie = 1;
+                    } else if (gastronomie != 0) {
+                        gastronomie = 0;
+                    }
+                    break;
+                case (9):
+                    if (religion != 1) {
+                        religion = 1;
+                    } else if (religion != 0) {
+                        religion = 0;
+                    }
+                    break;
+                case (10):
+                    if (öffentlicheHand != 1) {
+                        öffentlicheHand = 1;
+                    } else if (öffentlicheHand != 0) {
+                        öffentlicheHand = 0;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        onload = (function() {
+            initMap();
+            ajaxLoadData();
+            setInterval(function() {
+                if (!specifiedData) {
+                    ajaxLoadData();
+                } else {
+                    ajaxLoadSpecifiedData();
+                }
+            }, 5000000);
+        })
+    </script>
+    <h3>POI Dashboard </h3>
+
+    <div id="map"></div>
+    <!--Die InputForm-->
+    <div class="InputForm">
+        <table>
+            <tr>
+                <td>Namen:</td>
+                <td><input type="text" value="DieKleineKneipe" name="name" id="name"></td>
+            </tr>
+            <tr>
+                <td>Kategorie:</td>
+                <td><select name="Betreff" id=kategorie>
+                <option value="Transport">Transport</option>
+                <option value="Freizeit">Freizeit</option>
+                <option value="Gesundheitswesen">Gesundheitswesen</option>
+                <option value="Bildung">Bildung</option>
+                <option value="Einzelhandel">Einzelhandel</option>
+                <option value="Entsorgung">Entsorgung</option>
+                <option value="Finanzen">Finanzen</option>
+                <option value="Party">Party</option>
+                <option value="Gastronomie">Gastronomie</option>
+                <option value="Religion">Religion</option>
+                <option value="Öffentliche Hand">Öffentliche Hand</option>
+               </select>
+                </td>
+                <tr>
+                    <td>Long:</td>
+                    <td><input type="text" value="8" name="long" id="long"></td>
+                </tr>
+                <tr>
+                    <td>Lat:</td>
+                    <td><input type="text" value="50" name="lat" id="lat"></td>
+                </tr>
+                <tr></tr>
+                <tr>
+                    <td><input type="button" value="Speichern" onclick="senden()"></td>
+        </table>
+    </div>
+
+    <!--Checkboxen-->
+    <fieldset>
+        <legend> Choose your interests </legend>
+        <div>
+            <input type="checkbox" id="Transport" name="interests[]" value="Transport" onclick="change_interest(0)" checked>
+            <!--checked-->
+            <label for="Transport">Transport</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Freizeit" name="interests[]" value="Freizeit" onclick="change_interest(1)" checked>
+            <label for="Freizeit">Freizeit</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Gesundheitswesen" name="interests[]" value="Gesundheitswesen" onclick="change_interest(2)" checked>
+            <label for="Gesundheitswesen">Gesundheitswesen</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Bildung" name="interests[]" value="Bildung" onclick="change_interest(3)" checked>
+            <label for="Bildung">Bildung</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Einzelhandel und Dienstleistungen" name="interests[]" value="Einzelhandel und Dienstleistungen" onclick="change_interest(4)" checked>
+            <label for="Einzelhandel und Dienstleistungen">Einzelhandel und Dienstleistungen</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Entsorgung" name="interests[]" value="Entsorgung" onclick="change_interest(5)" checked>
+            <label for="Entsorgung">Entsorgung</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Finanzen" name="interests[]" value="Finanzen" onclick="change_interest(6)" checked>
+            <label for="Finanzen">Finanzen</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Party" name="interests[]" value="Party" onclick="change_interest(7)" checked>
+            <label for="Party">Party</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Gastronomie" name="interests[]" value="Gastronomie" onclick="change_interest(8)" checked>
+            <label for="Gastronomie">Gastronomie</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Religion" name="interests[]" value="Religion" onclick="change_interest(9)" checked>
+            <label for="Religion">Religion</label>
+        </div>
+        <div>
+            <input type="checkbox" id="Öffentliche Hand" name="interests[]" value="Öffentliche Hand" onclick="change_interest(10)" checked>
+            <label for="Öffentliche Hand">Öffentliche Hand</label>
+        </div>
+        <input type="button" value="Absenden" onclick="ajaxLoadSpecifiedData()">
+    </fieldset>
+
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>
+
+</body>
+
+</html>
+</body>
+
+</html>
