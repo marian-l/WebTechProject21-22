@@ -190,7 +190,11 @@
         var religion = 1;
         var öffentlicheHand = 1;
         var specifiedData = false;
+        searchPH = false;
+        var coords = [];
+        var myDataCounter = 1;
 
+        PHCoords = [];
         class Poi {
             constructor() {
                 this.name = "Default";
@@ -247,6 +251,7 @@
         }
 
         function senden() {
+            myDataCounter++;
             myNewPoi.name = encodeURI(document.getElementById('name').value);
             myNewPoi.kategorie = document.getElementById('kategorie').value;
             var tmplong = document.getElementById('long').value;
@@ -491,7 +496,6 @@
             routes[id] = route;
         }
 
-        var coords = [];
 
 
         function makeMap(myData) {
@@ -524,52 +528,54 @@
                         '<br> Latitude: ' + element.lat +
                         '<br> Kategorie: ' + element.kategorie)
                     .on('click', function(e) { //Hier ist die Logik zum An und Abwählen von POIs in die Routenplanung
-                        if (!coords.includes(this.getLatLng())) {
-                            coords.push(this.getLatLng());
-                            //   console.log(coords);
-                        } else {
-                            //  console.log(coords + "Eintrag vor Löschung");
-
-                            function arrayRemove(coords, value) {
-                                return coords.filter(function(ele) {
-                                    return ele != value;
-                                });
+                        if (!searchPH) {
+                            if (!coords.includes(this.getLatLng())) {
+                                coords.push(this.getLatLng());
+                            } else {
+                                function arrayRemove(coords, value) {
+                                    return coords.filter(function(ele) {
+                                        return ele != value;
+                                    });
+                                }
+                                coords = arrayRemove(coords, this.getLatLng());
                             }
-                            coords = arrayRemove(coords, this.getLatLng());
-                            //  console.log(coords + "Nach der Löschung");
-                            // console.log(coords);
+                        } else {
+                            PHCoords.forEach(element => {
+                                /////////// Wie finde ich von den Parkhaus Koordinaten und hoffentlich dem 
+                                /////////// this.getLatng() die kürzesten drei Routen??
+
+                            });
                         }
                     })
                     ////////////////////////
                     .addTo(markerLayer)
-
-
-
             });
-            console.log("Marker Layer: " + markerLayer);
-            console.log(map);
-            console.log(coords);
+            //    console.log("Marker Layer: " + markerLayer);
+            //    console.log(map);
+            //    console.log(coords);
             map.addLayer(markerLayer);
         }
+
 
         function ajaxLoadError() {
             console.log("loading error");
         }
 
+
         function ajaxLoadDataSuccess(myData) {
-            var output = "<p>";
-            console.log("ajaxLoadDataSuccess");
-            console.log(myData);
+            //console.log("ajaxLoadDataSuccess");
+            //console.log(myData);
             makeMap(myData);
         }
 
 
-        PHCoords = [];
 
         function ajaxLoadPHSuccess(myData) {
+            PHCoords = [];
             myData.forEach(element => {
                 PHCoords.push(element);
             });
+            console.log(PHCoords);
         }
 
         var routes = {};
@@ -751,13 +757,22 @@
         onload = (function() {
             initMap();
             ajaxLoadData();
+
             setInterval(function() {
-                if (!specifiedData) {
-                    ajaxLoadData();
-                } else {
-                    ajaxLoadSpecifiedData();
+                //  console.log(myDataCounter);  
+                //  console.log(myData.length);
+                // wenn das erste mal in die Funktion geladen wird, ist mDC=1 und mD.l=0 | Der erste Zyklus wird initiiert.
+                // Danach wird erst wieder initiiert, wenn auf den Absenden Button gedrückt wird
+                // am besten soll ich noch einbauen, dass man etwa 5000000 sekunden neu geladen wird?
+                if (myData.length != myDataCounter) {
+                    myDataCounter = myData.length;
+                    if (!specifiedData) {
+                        ajaxLoadData();
+                    } else {
+                        ajaxLoadSpecifiedData();
+                    }
                 }
-            }, 5000000);
+            }, 5000);
         })
     </script>
     <h3>POI Dashboard </h3>
